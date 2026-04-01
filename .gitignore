@@ -1,0 +1,15 @@
+data/
+data/documents/
+data/vectorstore/
+*.db
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env
+*.enc
+dist/
+build/
+*.spec
+.DS_Store
+Thumbs.db

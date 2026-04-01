@@ -1,0 +1,45 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-9.0.2, pluggy-1.6.0 -- D:\MIT_Dhani\6th\PAI_Proj\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\MIT_Dhani\6th\PAI_Proj
+plugins: anyio-4.13.0
+collecting ... collected 7 items
+
+tests/test_summarizer.py::test_chunk_text_small FAILED                   [ 14%]
+tests/test_summarizer.py::test_chunk_text_large PASSED                   [ 28%]
+tests/test_summarizer.py::test_chunk_text_filters_tiny PASSED            [ 42%]
+tests/test_summarizer.py::test_chunk_overlap PASSED                      [ 57%]
+tests/test_summarizer.py::test_summarize_single_chunk FAILED             [ 71%]
+tests/test_summarizer.py::test_summarize_multi_chunk PASSED              [ 85%]
+tests/test_summarizer.py::test_summarize_empty_text PASSED               [100%]
+
+================================== FAILURES ===================================
+____________________________ test_chunk_text_small ____________________________
+
+    def test_chunk_text_small():
+        text = "This is a small text that fits in one chunk."
+        chunks = chunk_text(text, chunk_size=100)
+>       assert len(chunks) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+
+tests\test_summarizer.py:18: AssertionError
+_________________________ test_summarize_single_chunk _________________________
+
+mock_chat = <MagicMock name='chat' id='2286687286480'>
+
+    @patch("app.tools.summarizer.chat")
+    def test_summarize_single_chunk(mock_chat):
+        mock_chat.return_value = "This is the summary."
+        result = summarize_text("Short text to summarize.")
+>       assert result["summary"] == "This is the summary."
+E       AssertionError: assert 'No content f...to summarize.' == 'This is the summary.'
+E         
+E         - This is the summary.
+E         + No content found to summarize.
+
+tests\test_summarizer.py:49: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_summarizer.py::test_chunk_text_small - assert 0 == 1
+FAILED tests/test_summarizer.py::test_summarize_single_chunk - AssertionError...
+========================= 2 failed, 5 passed in 1.76s =========================

@@ -1,143 +1,140 @@
-# Privacy-Preserving Personal AI Assistant
+# PrivAI
 
-> A fully local, privacy-first AI assistant that runs entirely on your laptop — no cloud APIs, no data leakage.
+Privacy-first personal AI assistant that runs fully on your machine with local models, local storage, and a modular multi-agent backend.
 
-![Python](https://img.shields.io/badge/Python-3.11+-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-green)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.35-red)
-![Ollama](https://img.shields.io/badge/Ollama-Local%20LLM-purple)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+## What It Does
 
----
+- Local chat with a general conversation agent
+- Document summarization with configurable depth and output format
+- Task creation from natural language with editable due date, time, priority, and status
+- Document question answering with local RAG
+- Agent handoff tracing in chat so you can see which specialist agent handled a request
 
-## ✨ Features
+## Architecture
 
-| Feature | Description |
-|---|---|
-| 💬 **Local Chat** | Conversational AI powered by Phi-3 Mini — fully offline |
-| 📝 **Note Summarization** | Upload PDF/DOCX/TXT files and get instant summaries |
-| 📅 **Task Scheduler** | Natural language task creation with due dates |
-| 🔍 **Document Q&A** | Ask questions about your uploaded documents (RAG) |
-| 🔒 **Zero Data Leakage** | Everything stays on your machine — always |
+The app uses a small coordinator plus specialist agents:
 
----
+- `intent_detector`: classifies the user request
+- `task_planner`: coordinator/orchestrator
+- `general_chat_agent`: handles open-ended chat
+- `scheduler_agent`: creates tasks from natural language
+- `task_manager_agent`: lists and deletes tasks
+- `document_qa_agent`: answers questions from indexed documents
+- `summarizer_agent`: routes users into the summarizer workflow
 
-## 🏗 Architecture
+Core stack:
 
+- `FastAPI` backend
+- `Streamlit` frontend
+- `Ollama` for local LLM inference
+- `ChromaDB` for document retrieval
+- `SQLite` for tasks and conversation history
+- `SentenceTransformers` for embeddings
+
+## Key Features
+
+### 1. Multi-Agent Chat Routing
+
+Requests are first classified by intent and then routed to a specialist agent. The chat UI shows:
+
+- detected intent
+- handling agent
+- agent handoff trace
+
+### 2. Configurable Summarization
+
+The summarizer now supports:
+
+- detail levels: `concise`, `standard`, `detailed`
+- formats: `plain`, `structured`, `study_guide`
+
+This makes it possible to get topic-wise and subtopic-wise summaries instead of one flat output.
+
+### 3. Better Task Handling
+
+Tasks support:
+
+- natural language creation
+- deterministic weekday parsing for prompts like `on monday`
+- direct editing from the UI
+- priority and status updates
+
+## Project Structure
+
+```text
+PrivAI-main/
+├── app/
+│   ├── agents/
+│   ├── memory/
+│   ├── models/
+│   ├── storage/
+│   ├── tools/
+│   └── main.py
+├── ui/
+│   ├── components/
+│   ├── pages/
+│   └── app.py
+├── docs/
+├── evaluation/
+├── tests/
+├── requirements.txt
+└── README.md
 ```
-Streamlit UI (localhost:8501)
-       ↓
-FastAPI Backend (localhost:8000)
-       ↓
-Intent Detector → Task Planner → Tool Executor
-                                      ↓
-                    ┌─────────────────┼─────────────────┐
-                    ↓                 ↓                 ↓
-              Summarizer           RAG Engine        Scheduler
-                    ↓                 ↓                 ↓
-              Ollama LLM         ChromaDB          SQLite DB
-              (Phi-3 Mini)      (Embeddings)       (Tasks)
-              [FULLY LOCAL]     [FULLY LOCAL]    [FULLY LOCAL]
-```
 
----
-
-## 🚀 Quick Start
+## Run Locally
 
 ### Prerequisites
-- Python 3.11+
-- [Ollama](https://ollama.com/download) installed and running
 
-### 1. Pull Required Models
-```bash
+- Python 3.11+
+- Ollama installed and running
+
+### Pull Local Models
+
+```powershell
 ollama pull phi3:mini
 ollama pull tinyllama
 ```
 
-### 2. Setup Project
-```bash
-git clone https://github.com/yourteam/pai-assistant
-cd pai-assistant
+### Install Dependencies
+
+```powershell
 python -m venv venv
-venv\Scripts\activate      # Windows
-pip install -r requirements.txt
+venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-### 3. Run (Windows — One Click)
-```bash
-start_assistant.bat
+### Start Backend
+
+```powershell
+venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-### 3. Run (Manual)
-```bash
-# Terminal 1
-uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+### Start Frontend
 
-# Terminal 2
-streamlit run ui/app.py
+```powershell
+venv\Scripts\python.exe -m streamlit run ui/app.py --server.port 8501
 ```
 
-Open **http://localhost:8501** in your browser.
+Open:
 
----
+- UI: `http://127.0.0.1:8501`
+- API docs: `http://127.0.0.1:8000/docs`
 
-## 📁 Project Structure
+## Privacy Notes
 
-```
-pai-assistant/
-├── app/                    # FastAPI Backend
-│   ├── agents/             # Intent detection + task planning
-│   ├── tools/              # Summarizer, RAG, Scheduler
-│   ├── models/             # LLM + Embedder clients
-│   ├── memory/             # Vector store + conversation history
-│   └── storage/            # SQLite + file management
-├── ui/                     # Streamlit Frontend
-│   ├── pages/              # Feature pages
-│   └── components/         # Shared UI components
-├── data/                   # Local storage (gitignored)
-├── tests/                  # Unit tests
-├── docs/                   # Architecture & privacy docs
-└── evaluation/             # Benchmarking scripts
-```
+- No cloud API keys required
+- Data stays on your device
+- Documents are processed locally
+- Tasks and history are stored locally
 
----
+## Current State
 
-## 🔒 Privacy Guarantees
+This repo currently includes:
 
-1. **Air-gap Architecture**: All services run on `localhost` — zero outbound HTTP requests
-2. **No API Keys**: No cloud tokens, no accounts required
-3. **Local Storage**: All data stored in `data/` on your machine
-4. **Optional Encryption**: AES-256 file encryption (set `ENABLE_ENCRYPTION=True` in config)
-5. **Optional DP Noise**: Differential privacy on embedding vectors
+- modular specialist agents
+- task editing support
+- improved summarization controls
+- chat handoff tracing
 
----
+## License
 
-## 🧠 Models Used
-
-| Model | Use | Size |
-|---|---|---|
-| Phi-3 Mini (4-bit) | Main reasoning, summarization, Q&A | ~2.3 GB |
-| TinyLlama (4-bit) | Fast intent classification | ~0.6 GB |
-| all-MiniLM-L6-v2 | Sentence embeddings for RAG | ~80 MB |
-
----
-
-## 📊 Performance
-
-| Metric | Value |
-|---|---|
-| Response Latency (CPU) | 5–12 seconds |
-| RAM Usage (peak) | ~4.5 GB |
-| Document Q&A Accuracy | >75% Top-K recall |
-| Task Parsing Accuracy | >85% |
-
----
-
-## 👥 Team
-
-- **Student A** — Backend, LLM Integration, Agent Architecture
-- **Student B** — Frontend, Storage, Evaluation
-
----
-
-*Built for PAI Project — 6th Semester*
+MIT
